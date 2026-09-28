@@ -15,6 +15,21 @@
   color-scheme: light;
 }
 
+/* Sem data-theme: segue o sistema. data-theme="light|dark" (escolha explícita) sempre vence. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f131c;
+    --surface: #171c28;
+    --surface-2: #1f2635;
+    --border: #2a3345;
+    --text: #e6e9f2;
+    --muted: #8b95ad;
+    --primary: #6b8fff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+
 :root[data-theme="dark"] {
   --bg: #0f131c;
   --surface: #171c28;
@@ -31,7 +46,7 @@
 
 [hidden] { display: none !important; }
 
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; min-height: 100%; }
 
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -106,7 +121,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 5;
 }
 
@@ -137,6 +152,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   cursor: pointer;
   background: var(--surface-2);
   white-space: nowrap;
+  text-decoration: none;
 }
 .btn:hover { filter: brightness(.97); }
 .btn-primary { background: var(--primary); color: var(--primary-contrast); }
@@ -146,6 +162,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn-sm { padding: 6px 10px; font-size: 13px; }
 .icon-only { padding: 9px 11px; }
 .btn:disabled { opacity: .6; cursor: progress; }
+.btn:focus-visible, .icon-btn:focus-visible, .nav-item:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Aviso de modo */
+.banner {
+  margin: 16px 24px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
+  background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  font-size: 14px;
+}
+.banner.info {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
 
 /* Stats */
 .stats {
@@ -253,6 +284,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: var(--text);
   box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
 }
+.dialog-sm { width: min(420px, calc(100vw - 32px)); }
+.ask-message { margin: 0; font-size: 15px; line-height: 1.5; white-space: pre-line; }
 .dialog::backdrop { background: rgba(10, 15, 30, .5); backdrop-filter: blur(2px); }
 .dialog-body { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
 .dialog-body h2 { margin: 0 0 4px; font-size: 18px; }
@@ -309,6 +342,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .search { order: 3; flex-basis: 100%; max-width: none; }
   #btn-check .label, #btn-add .label { display: none; }
   .stats, .content { padding-left: 16px; padding-right: 16px; }
+  .banner { margin-left: 16px; margin-right: 16px; }
   .tools.list .card { flex-wrap: wrap; }
   .tools.list .card-head { flex: 1 1 100%; }
   .tools.list .card-desc { display: none; }

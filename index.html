@@ -54,6 +54,8 @@
         </div>
       </header>
 
+      <div class="banner" id="banner" hidden></div>
+
       <section class="stats" id="stats"></section>
 
       <section class="content">
@@ -129,6 +131,14 @@
         <button type="button" class="btn btn-ghost" id="btn-cancel">Cancelar</button>
         <button type="submit" class="btn btn-primary">Salvar</button>
       </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmação (confirm() nativo não funciona dentro de artefatos) -->
+  <dialog id="ask-dialog" class="dialog dialog-sm">
+    <form method="dialog" class="dialog-body">
+      <p id="ask-message" class="ask-message"></p>
+      <div class="dialog-actions" id="ask-actions"></div>
     </form>
   </dialog>
 
