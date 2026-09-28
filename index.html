@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Control Hub</title>
+  <meta name="description" content="Painel central para acessar e monitorar várias ferramentas." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎛️</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-logo">🎛️</span>
+        <span class="brand-name">Control Hub</span>
+      </div>
+
+      <nav class="nav">
+        <p class="nav-title">Visões</p>
+        <ul id="view-list">
+          <li><button class="nav-item active" data-view="all">📋 Todas <span class="count" data-count="all"></span></button></li>
+          <li><button class="nav-item" data-view="favorites">⭐ Favoritas <span class="count" data-count="favorites"></span></button></li>
+          <li><button class="nav-item" data-view="recent">🕒 Recentes <span class="count" data-count="recent"></span></button></li>
+          <li><button class="nav-item" data-view="offline">🔴 Com problema <span class="count" data-count="offline"></span></button></li>
+        </ul>
+
+        <p class="nav-title">Categorias</p>
+        <ul id="category-list"></ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm" id="btn-export" title="Exportar configuração">⬇️ Exportar</button>
+        <label class="btn btn-ghost btn-sm" title="Importar configuração">
+          ⬆️ Importar
+          <input type="file" id="input-import" accept="application/json" hidden />
+        </label>
+        <button class="btn btn-ghost btn-sm" id="btn-reset" title="Restaurar ferramentas de exemplo">↺ Restaurar</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="btn btn-ghost icon-only" id="btn-menu" aria-label="Abrir menu">☰</button>
+        <div class="search">
+          <span class="search-icon">🔍</span>
+          <input type="search" id="search" placeholder="Buscar ferramentas…  ( / )" autocomplete="off" />
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" id="btn-check" title="Verificar status de todas">📡 <span class="label">Verificar status</span></button>
+          <button class="btn btn-ghost icon-only" id="btn-layout" title="Alternar grade/lista" aria-label="Alternar grade/lista">▦</button>
+          <button class="btn btn-ghost icon-only" id="btn-theme" title="Alternar tema" aria-label="Alternar tema">🌓</button>
+          <button class="btn btn-primary" id="btn-add">＋ <span class="label">Nova ferramenta</span></button>
+        </div>
+      </header>
+
+      <section class="stats" id="stats"></section>
+
+      <section class="content">
+        <div class="content-header">
+          <h1 id="view-title">Todas as ferramentas</h1>
+          <select id="sort" class="select" aria-label="Ordenar">
+            <option value="manual">Ordem manual</option>
+            <option value="name">Nome (A–Z)</option>
+            <option value="usage">Mais usadas</option>
+            <option value="recent">Usadas recentemente</option>
+          </select>
+        </div>
+        <div id="tools" class="tools grid"></div>
+        <div id="empty" class="empty" hidden>
+          <p class="empty-icon">🧰</p>
+          <p>Nenhuma ferramenta encontrada.</p>
+          <button class="btn btn-primary" id="btn-add-empty">＋ Adicionar ferramenta</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal de ferramenta -->
+  <dialog id="tool-dialog" class="dialog">
+    <form method="dialog" id="tool-form" class="dialog-body">
+      <h2 id="dialog-title">Nova ferramenta</h2>
+      <input type="hidden" name="id" />
+      <div class="form-row">
+        <label class="field field-icon">
+          <span>Ícone</span>
+          <input name="icon" maxlength="4" placeholder="🔧" />
+        </label>
+        <label class="field grow">
+          <span>Nome *</span>
+          <input name="name" required maxlength="60" placeholder="Ex.: Jira" />
+        </label>
+      </div>
+      <label class="field">
+        <span>URL *</span>
+        <input name="url" type="url" required placeholder="https://…" />
+      </label>
+      <label class="field">
+        <span>Descrição</span>
+        <input name="description" maxlength="140" placeholder="Para que serve esta ferramenta" />
+      </label>
+      <div class="form-row">
+        <label class="field grow">
+          <span>Categoria</span>
+          <input name="category" list="category-options" maxlength="40" placeholder="Ex.: Desenvolvimento" />
+          <datalist id="category-options"></datalist>
+        </label>
+        <label class="field field-color">
+          <span>Cor</span>
+          <input name="color" type="color" value="#4f7cff" />
+        </label>
+      </div>
+      <label class="field">
+        <span>Tags (separadas por vírgula)</span>
+        <input name="tags" placeholder="interno, produção" />
+      </label>
+      <label class="field">
+        <span>Notas</span>
+        <textarea name="notes" rows="3" placeholder="Credenciais ficam no cofre, não aqui 🙂"></textarea>
+      </label>
+      <div class="form-row checks">
+        <label class="check"><input type="checkbox" name="favorite" /> Favorita</label>
+        <label class="check"><input type="checkbox" name="monitor" checked /> Monitorar status</label>
+        <label class="check"><input type="checkbox" name="newTab" checked /> Abrir em nova aba</label>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-danger" id="btn-delete" hidden>Excluir</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
