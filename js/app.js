@@ -7,14 +7,15 @@
   const RECENT_LIMIT = 12;
 
   const DEFAULT_TOOLS = [
-    { name: 'GitHub', url: 'https://github.com', icon: '🐙', category: 'Desenvolvimento', color: '#24292f', description: 'Repositórios, pull requests e CI.', tags: ['código'] },
-    { name: 'Google Drive', url: 'https://drive.google.com', icon: '📁', category: 'Produtividade', color: '#1a73e8', description: 'Arquivos e documentos compartilhados.', tags: ['arquivos'] },
-    { name: 'Gmail', url: 'https://mail.google.com', icon: '✉️', category: 'Comunicação', color: '#ea4335', description: 'E-mail corporativo.', tags: [] },
-    { name: 'Google Agenda', url: 'https://calendar.google.com', icon: '📅', category: 'Produtividade', color: '#0f9d58', description: 'Reuniões e compromissos.', tags: [] },
-    { name: 'Claude', url: 'https://claude.ai', icon: '✳️', category: 'IA', color: '#d97757', description: 'Assistente de IA.', tags: ['ia'] },
-    { name: 'Receita Federal', url: 'https://www.gov.br/receitafederal', icon: '🏛️', category: 'Fiscal', color: '#1351b4', description: 'Portal da Receita Federal.', tags: ['governo'] },
-    { name: 'e-CAC', url: 'https://cav.receita.fazenda.gov.br', icon: '🧾', category: 'Fiscal', color: '#168821', description: 'Centro Virtual de Atendimento.', tags: ['governo'] },
-    { name: 'Portal SPED', url: 'http://sped.rfb.gov.br', icon: '📊', category: 'Fiscal', color: '#5b3cc4', description: 'Sistema Público de Escrituração Digital.', tags: ['sped'] },
+    { name: 'Gestta', url: 'https://app.gestta.com.br', icon: '📈', category: 'Acompanhamento', color: '#6b7280', description: 'Andamento das empresas.', tags: ['empresas'] },
+    { name: 'Portal do Cliente', url: '', icon: '🧑‍💼', category: 'Atalhos', color: '#6b7280', description: 'Acesso rápido pelo app.', tags: ['cliente'] },
+    { name: 'Planilha DP', url: '', icon: '👥', category: 'Atalhos', color: '#6b7280', description: 'Acesso rápido pelo app.', tags: ['planilha', 'dp'] },
+    { name: 'Planilha Fiscal', url: '', icon: '🧾', category: 'Atalhos', color: '#6b7280', description: 'Acesso rápido pelo app.', tags: ['planilha', 'fiscal'] },
+    { name: 'Planilha Contábil', url: '', icon: '📒', category: 'Atalhos', color: '#6b7280', description: 'Acesso rápido pelo app.', tags: ['planilha', 'contábil'] },
+    { name: 'Zappy', url: '', icon: '💬', category: 'Comunicação', color: '#22a55b', description: 'Só os contatos.', tags: ['whatsapp', 'contatos'] },
+    { name: 'Zimbra', url: '', icon: '✉️', category: 'Comunicação', color: '#22a55b', description: 'Agendamento das salas e monitoramento das comunicações.', tags: ['e-mail', 'salas'], notes: 'Monitorar ao máximo as comunicações — tanto no e-mail quanto no WhatsApp.' },
+    { name: 'Pasta Servidor', url: '', icon: '🗄️', category: 'Monitoramento', color: '#22a55b', description: 'Arquivos fora do padrão ou salvos no local errado.', tags: ['servidor', 'arquivos'], notes: 'Monitorar arquivos fora do padrão e salvos em local errado. Como diagnosticar quando um arquivo não for salvo?', monitor: false },
+    { name: 'Cardápio', url: '', icon: '🍽️', category: 'Outros', color: '#4f7cff', description: '', tags: [] },
   ];
 
   // ---------- Estado ----------
@@ -43,6 +44,7 @@
   }
 
   function hostOf(url) {
+    if (!url) return 'Link não configurado';
     try { return new URL(url).host; } catch { return url; }
   }
 
@@ -50,7 +52,7 @@
     return {
       id: t.id || uid(),
       name: String(t.name || 'Sem nome').slice(0, 60),
-      url: safeUrl(t.url) || 'https://example.com',
+      url: safeUrl(t.url) || '',
       icon: t.icon || '🔧',
       category: (t.category || 'Geral').trim() || 'Geral',
       color: /^#[0-9a-f]{6}$/i.test(t.color || '') ? t.color : '#4f7cff',
@@ -151,7 +153,7 @@
   }
 
   function renderStats() {
-    const monitored = state.tools.filter((t) => t.monitor);
+    const monitored = state.tools.filter((t) => t.monitor && t.url);
     const online = monitored.filter((t) => state.status[t.id] === 'online').length;
     const offline = monitored.filter((t) => state.status[t.id] === 'offline').length;
     const checked = online + offline;
@@ -160,6 +162,7 @@
       ['Categorias', categories().length],
       ['Online', checked ? `${online}/${checked}` : '—'],
       ['Com problema', checked ? offline : '—'],
+      ['Sem link', state.tools.filter((t) => !t.url).length],
       ['Acessos', state.tools.reduce((s, t) => s + t.uses, 0)],
     ];
     $('#stats').innerHTML = stats.map(([label, value]) =>
@@ -182,10 +185,10 @@
     const draggable = state.prefs.sort === 'manual' && state.view !== 'recent' && !state.query;
 
     container.innerHTML = list.map((t) => {
-      const st = t.monitor ? state.status[t.id] : null;
+      const st = t.monitor && t.url ? state.status[t.id] : null;
       const used = t.lastUsed ? `Usada ${timeAgo(t.lastUsed)}` : 'Nunca usada';
       return `
-      <article class="card" data-id="${t.id}" style="--accent:${t.color}" ${draggable ? 'draggable="true"' : ''}>
+      <article class="card${t.url ? '' : ' no-link'}" data-id="${t.id}" style="--accent:${t.color}" ${draggable ? 'draggable="true"' : ''}>
         <div class="card-head">
           <div class="card-icon">${escapeHtml(t.icon)}</div>
           <div class="card-titles">
@@ -199,10 +202,12 @@
         <div class="card-foot">
           ${st ? `<span class="status ${st}"><span class="status-dot"></span>${STATUS_LABEL[st]}</span>` : `<span class="card-meta">${used}</span>`}
           ${st ? `<span class="card-meta"></span>` : ''}
-          ${t.monitor ? `<button class="icon-btn" data-action="check" title="Verificar status" aria-label="Verificar status">📡</button>` : ''}
-          <button class="icon-btn" data-action="copy" title="Copiar link" aria-label="Copiar link">🔗</button>
+          ${t.monitor && t.url ? `<button class="icon-btn" data-action="check" title="Verificar status" aria-label="Verificar status">📡</button>` : ''}
+          ${t.url ? `<button class="icon-btn" data-action="copy" title="Copiar link" aria-label="Copiar link">🔗</button>` : ''}
           <button class="icon-btn" data-action="edit" title="Editar" aria-label="Editar">✏️</button>
-          <button class="btn btn-primary btn-sm" data-action="open">Abrir ↗</button>
+          ${t.url
+            ? `<button class="btn btn-primary btn-sm" data-action="open">Abrir ↗</button>`
+            : `<button class="btn btn-ghost btn-sm" data-action="edit">Definir link</button>`}
         </div>
       </article>`;
     }).join('');
@@ -223,6 +228,11 @@
   const findTool = (id) => state.tools.find((t) => t.id === id);
 
   function openTool(t) {
+    if (!t.url) {
+      openDialog(t);
+      toast('Defina o link desta ferramenta.');
+      return;
+    }
     t.uses += 1;
     t.lastUsed = Date.now();
     save();
@@ -235,6 +245,7 @@
   }
 
   async function checkStatus(t) {
+    if (!t.url) return;
     state.status[t.id] = 'checking';
     renderTools();
     const ctrl = new AbortController();
@@ -254,7 +265,7 @@
   async function checkAll() {
     const btn = $('#btn-check');
     btn.disabled = true;
-    const monitored = state.tools.filter((t) => t.monitor);
+    const monitored = state.tools.filter((t) => t.monitor && t.url);
     await Promise.all(monitored.map(checkStatus));
     btn.disabled = false;
     const off = monitored.filter((t) => state.status[t.id] === 'offline').length;
@@ -262,6 +273,7 @@
   }
 
   async function copyLink(t) {
+    if (!t.url) return toast('Link não configurado.');
     try {
       await navigator.clipboard.writeText(t.url);
       toast('Link copiado.');
@@ -301,8 +313,9 @@
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const f = form.elements;
-    const url = safeUrl(f.url.value.trim());
-    if (!url) {
+    const rawUrl = f.url.value.trim();
+    const url = rawUrl ? safeUrl(rawUrl) : '';
+    if (url === null) {
       toast('Informe uma URL http(s) válida.');
       f.url.focus();
       return;

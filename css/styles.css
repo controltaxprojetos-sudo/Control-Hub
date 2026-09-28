@@ -150,7 +150,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Stats */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 14px;
   padding: 20px 24px 0;
 }
@@ -314,3 +314,5 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .tools.list .card-desc { display: none; }
   .tools.list .card-foot { flex: 1 1 100%; }
 }
+
+.card.no-link .card-host { font-style: italic; color: var(--warn); }
